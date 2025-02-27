@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат-бот научной библиотеки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .chat-container {
+            width: 600px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .chat-body {
+            padding: 10px;
+            height: 500px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+        }
+        .chat-footer input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .chat-footer button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message.user {
+            text-align: right;
+        }
+        .message.bot {
+            text-align: left;
+        }
+        .message p {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+        .message.user p {
+            background: #007bff;
+            color: white;
+        }
+        .message.bot p {
+            background: #f1f1f1;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Чат-бот научной библиотеки</h2>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <!-- Сообщения будут добавляться сюда -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="question-input" placeholder="Введите ваш вопрос...">
+            <button onclick="sendQuestion()">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendQuestion() {
+            const input = document.getElementById("question-input");
+            const question = input.value.trim();
+            if (!question) return;
+
+            // Добавляем вопрос в чат
+            const chatBody = document.getElementById("chat-body");
+            chatBody.innerHTML += `
+                <div class="message user">
+                    <p>${question}</p>
+                </div>
+            `;
+
+            // Очищаем поле ввода
+            input.value = "";
+
+            // Отправляем вопрос на сервер
+            const response = await fetch("/ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ question })
+            });
+
+            const data = await response.json();
+            if (data.answer) {
+                // Добавляем ответ в чат
+                chatBody.innerHTML += `
+                    <div class="message bot">
+                        <p>${data.answer}</p>
+                    </div>
+                `;
+            } else {
+                chatBody.innerHTML += `
+                    <div class="message bot">
+                        <p>Ошибка: ${data.error || "Не удалось получить ответ"}</p>
+                    </div>
+                `;
+            }
+
+            // Прокрутка вниз
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+    </script>
+</body>
+</html>
